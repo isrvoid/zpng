@@ -97,8 +97,8 @@ fn Decoder(comptime Reader: type) type {
 
                         const rgb_palette = std.mem.bytesAsSlice([3]u8, chunk.data);
                         const rgba_palette = try self.allocator.alloc([4]u16, rgb_palette.len);
-                        for (rgb_palette) |entry, i| {
-                            for (entry) |c, j| {
+                        for (rgb_palette, 0..) |entry, i| {
+                            for (entry, 0..) |c, j| {
                                 rgba_palette[i][j] = @as(u16, 257) * c;
                             }
                             rgba_palette[i][3] = std.math.maxInt(u16);
@@ -142,7 +142,7 @@ fn Decoder(comptime Reader: type) type {
                                 const plte = palette orelse {
                                     return error.InvalidPng; // tRNS before PLTE
                                 };
-                                for (chunk.data) |trns, i| {
+                                for (chunk.data, 0..) |trns, i| {
                                     plte[i][3] = trns;
                                 }
                             },
@@ -356,7 +356,7 @@ fn readPixels(
             }
 
             const idx = x + y * ihdr.width;
-            for (pix) |c, i| {
+            for (pix, 0..) |c, i| {
                 pixels[idx][i] = component_coef * c;
             }
         }
@@ -416,7 +416,7 @@ const ChunkType = blk: {
     };
 
     var fields: [types.len]std.builtin.Type.EnumField = undefined;
-    for (types) |name, i| {
+    for (types, 0..) |name, i| {
         var field_name: [4]u8 = undefined;
         fields[i] = .{
             .name = std.ascii.lowerString(&field_name, name),
@@ -451,7 +451,7 @@ fn filterScanline(filter: FilterType, bit_depth: u5, components: u4, prev_line: 
         else => unreachable,
     };
 
-    for (line) |*x, i| {
+    for (line, 0..) |*x, i| {
         const a = if (i < byte_rewind) 0 else line[i - byte_rewind];
         const b = prev_line[i];
         const c = if (i < byte_rewind) 0 else prev_line[i - byte_rewind];
@@ -489,7 +489,7 @@ test "red/blue" {
         const img = try Image.read(std.testing.allocator, buf.reader());
         defer img.deinit(std.testing.allocator);
 
-        for (img.pixels) |pix, i| {
+        for (img.pixels, 0..) |pix, i| {
             const r: u16 = if (img.x(i) < 32) 0 else 65535;
             const b: u16 = if (img.y(i) < 32) 0 else 65535;
             try std.testing.expectEqual([4]u16{ r, 0, b, 65535 }, pix);
@@ -508,7 +508,7 @@ test "green/alpha" {
         const img = try Image.read(std.testing.allocator, buf.reader());
         defer img.deinit(std.testing.allocator);
 
-        for (img.pixels) |pix, i| {
+        for (img.pixels, 0..) |pix, i| {
             const g: u16 = if (img.x(i) < 32) 0 else 65535;
             const a: u16 = if (img.y(i) < 32) 0 else 65535;
             try std.testing.expectEqual([4]u16{ 0, g, 0, a }, pix);
