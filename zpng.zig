@@ -27,11 +27,11 @@ pub const Image = struct {
 
     /// Return the X coordinate of the pixel at index
     pub fn x(self: Image, index: usize) u32 {
-        return @intCast(u32, index % self.width);
+        return @intCast(index % self.width);
     }
     /// Return the Y coordinate of the pixel at index
     pub fn y(self: Image, index: usize) u32 {
-        return @intCast(u32, index / self.height);
+        return @intCast(index / self.height);
     }
 
     /// Return the pixel at the given X and Y coordinates
@@ -223,7 +223,7 @@ fn Decoder(comptime Reader: type) type {
             return Ihdr{
                 .width = width,
                 .height = height,
-                .bit_depth = @intCast(u5, bit_depth),
+                .bit_depth = @intCast(bit_depth),
                 .colour_type = colour_type,
                 .compression_method = compression_method,
                 .filter_method = filter_method,
@@ -297,7 +297,7 @@ fn readPixels(
         else => ihdr.bit_depth,
     };
     // Max component_bits-bit value
-    const component_max = @intCast(u16, (@as(u17, 1) << component_bits) - 1);
+    const component_max: u16 = @intCast((@as(u17, 1) << component_bits) - 1);
     // Multiply each colour component by this to produce a normalized u16
     const component_coef = @divExact(
         std.math.maxInt(u16),
@@ -432,11 +432,11 @@ const ChunkType = blk: {
     } });
 };
 fn chunkType(name: [4]u8) ChunkType {
-    return @intToEnum(ChunkType, std.mem.readIntNative(u32, &name));
+    return @enumFromInt(std.mem.readIntNative(u32, &name));
 }
 fn chunkName(ctype: ChunkType) [4]u8 {
     var name: [4]u8 = undefined;
-    std.mem.writeIntNative(u32, &name, @enumToInt(ctype));
+    std.mem.writeIntNative(u32, &name, @intFromEnum(ctype));
     return name;
 }
 
@@ -460,7 +460,7 @@ fn filterScanline(filter: FilterType, bit_depth: u5, components: u4, prev_line: 
             .none => unreachable,
             .sub => a,
             .up => b,
-            .average => @intCast(u8, (@as(u9, a) + b) / 2),
+            .average => @intCast((@as(u9, a) + b) / 2),
             .paeth => paeth(a, b, c),
         };
     }
