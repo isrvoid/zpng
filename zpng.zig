@@ -263,7 +263,7 @@ fn readPixels(
     data: []const u8,
 ) ![][4]u16 {
     var compressed_stream = std.io.fixedBufferStream(data);
-    var data_stream = try std.compress.zlib.zlibStream(allocator, compressed_stream.reader());
+    var data_stream = try std.compress.zlib.decompressStream(allocator, compressed_stream.reader());
     defer data_stream.deinit();
     const datar = data_stream.reader();
 
@@ -284,7 +284,7 @@ fn readPixels(
     defer allocator.free(line);
     var prev_line = try allocator.alloc(u8, line_bytes);
     defer allocator.free(prev_line);
-    std.mem.set(u8, prev_line, 0); // Zero prev_line
+    @memset(prev_line, 0); // Zero prev_line
 
     // Number of bits in actual colour components
     const component_bits = switch (ihdr.colour_type) {
